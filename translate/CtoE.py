@@ -44,7 +44,7 @@ def parse_data(filename):
         (preprocess_sentence(en),preprocess_sentence(cm)) for en,cm in sentence_pairs
     ]
     
-    return zip(*preprocessed_sentence_pairs) # 返回英文列表和西班牙列表
+    return zip(*preprocessed_sentence_pairs) # 返回英文列表和法语列表
  
 en_dataset,fr_dataset = parse_data(en_fra_file_path)
 print(en_dataset[-1])
@@ -95,7 +95,7 @@ convert(output_train[0],output_tokenizer)
  
  
 def make_dataset(input_tensor,output_tensor,batch_size,epochs,shuffle):
-    '''转化为高效的数据管道，加载数据集'''#建立数据管道，要训​​练该模型，我们需要一个数据管道来为其提供标记的训练数据
+    '''转化为高效的数据管道，加载数据集'''#建立数据管道，要训​​练该模型，需要一个数据管道来为其提供标记的训练数据
     dataset = tf.data.Dataset.from_tensor_slices(
         (input_tensor,output_tensor)
     )#接收tensor,对tensor第一维度进行切分，numpy创建tf
@@ -121,7 +121,7 @@ input_vocab_size = len(input_tokenizer.word_index)+1
 output_vocab_size = len(output_tokenizer.word_index)+1
  
  
-# 这里GPU内存不够！需要设置GPU内存自增
+# 设置GPU内存自增
 class Encoder(keras.Model):
     def __init__(self,vocab_size,embedding_units,encoding_units,batch_size):
         # encoding units是lstm的大小
@@ -129,14 +129,13 @@ class Encoder(keras.Model):
         self.batch_size = batch_size
         self.encoding_units = encoding_units
         self.embedding = keras.layers.Embedding(vocab_size,embedding_units)#对每个词编号后将编号变成词向量，将正整数转换为固定尺寸的稠密向量
-        # 不要多想，encoding units就把他看成out_put shape就很美好
         self.gru = keras.layers.GRU(self.encoding_units,return_sequences=True,return_state=True,
                                    recurrent_initializer='glorot_uniform') # lstm的变种，遗忘门  = 1-输入门
         
     
     def call(self,x,hidden):
         x = self.embedding(x)
-        # rnn会自适应长度
+        # rnn自适应长度
         output,state = self.gru(x,initial_state=hidden) # 得到每一步的输出和最后一步的隐含状态
         return output,state
     
